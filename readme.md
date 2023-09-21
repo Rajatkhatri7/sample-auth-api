@@ -53,7 +53,7 @@ This will start the FastAPI server on port 8001.
 
 ## Accessing the API
 
-You can access the API at `http://0.0.0.0:8001`.
+You can access the API at `http://0.0.0.0:8001/<endpoint name>`.
 
 ## SwaggerUI Documentation
 
