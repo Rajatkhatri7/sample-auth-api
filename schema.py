@@ -1,5 +1,5 @@
 from database import Base
-from sqlalchemy import Column,ForeignKey,Integer,String,Boolean
+from sqlalchemy import Column,ForeignKey,Integer,String,LargeBinary
 
 class Users(Base):
 
@@ -18,4 +18,4 @@ class Profile(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(String,ForeignKey("users.user_id"))
-    profile_picture = Column(String,nullable=False)
+    profile_picture = Column(LargeBinary,nullable=False)

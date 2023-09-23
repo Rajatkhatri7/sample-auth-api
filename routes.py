@@ -3,6 +3,7 @@ from models import CreateUser,ResponseModel
 from database import get_db
 from sqlalchemy.orm import Session
 from schema import Users,Profile
+import base64
 import uuid
 
 
@@ -20,19 +21,22 @@ async def register_user(user: CreateUser, db: Session = Depends(get_db)):
   
 
   try:
+
+
+    image_bytes = base64.b64decode(user.profile)
     # Create a new user
     new_user = Users(user_id= str(uuid.uuid4()), full_name=user.full_name, email=user.email, password=user.password, phone=user.phone)
     db.add(new_user)
     db.commit() 
   
-    new_profile = Profile(user_id=new_user.user_id,profile_picture=user.profile)
+    new_profile = Profile(user_id=new_user.user_id,profile_picture=image_bytes)
     db.add(new_profile)
     db.commit()
     
     return ResponseModel(status="success",message="Registered Successfully",data={"user_id":new_user.user_id})
   
   except Exception as err:
-    db.rollback(  )
+    db.rollback()
     return ResponseModel(status="failed",message=err,data={})
 
 
@@ -44,12 +48,13 @@ async def get_user(user_id: str, db: Session = Depends(get_db)):
     raise HTTPException(status_code=404, detail="User not found")
 
   profile = db.query(Profile).filter(Profile.user_id==user_id).first()
+  image_data_base64 = base64.b64encode(profile.profile_picture).decode('utf-8')
 
   data = {
     "full_name":user.full_name,
     "email":user.email,
     "phone":user.phone,
-    "profile":profile.profile_picture,
+    "profile":image_data_base64,
   }
 
   return ResponseModel(status="success",message="Users details fetched successfully",data={"userDetails":data})
