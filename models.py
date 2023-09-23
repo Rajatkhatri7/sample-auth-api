@@ -5,7 +5,7 @@ class CreateUser(BaseModel):
   email: EmailStr
   password: str
   phone: str
-  profile:bytes
+  profile:str
 
 
 class ResponseModel(BaseModel):

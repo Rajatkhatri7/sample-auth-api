@@ -21,7 +21,7 @@ async def register_user(user: CreateUser, db: Session = Depends(get_db)):
 
   
   try:
-    image_bytes = base64.b64decode(user.profile)
+    image_bytes = base64.b64decode(user.profile.split(",")[1])
   except Exception as err:
     raise HTTPException(status_code=400, detail="Invalid base64-encoded image data")
 
