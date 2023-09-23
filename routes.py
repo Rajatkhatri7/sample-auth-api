@@ -4,13 +4,14 @@ from database import get_db
 from sqlalchemy.orm import Session
 from schema import Users,Profile
 import base64
+import bcrypt
 import uuid
 
 
 users_router = APIRouter(prefix="/users")
 
 
-@users_router.post("/register", response_model=ResponseModel)
+@users_router.post("/register")
 async def register_user(user: CreateUser, db: Session = Depends(get_db)):
   # Check if the email and phone number already exist
   if db.query(Users).filter(Users.email == user.email).first():
@@ -19,13 +20,17 @@ async def register_user(user: CreateUser, db: Session = Depends(get_db)):
     raise HTTPException(status_code=409, detail="Phone number already exists")
 
   
+  try:
+    image_bytes = base64.b64decode(user.profile)
+  except Exception as err:
+    raise HTTPException(status_code=400, detail="Invalid base64-encoded image data")
+
 
   try:
 
-
-    image_bytes = base64.b64decode(user.profile)
+    hashed_password = bcrypt.hashpw(user.password.encode('utf-8'), bcrypt.gensalt())
     # Create a new user
-    new_user = Users(user_id= str(uuid.uuid4()), full_name=user.full_name, email=user.email, password=user.password, phone=user.phone)
+    new_user = Users(user_id= str(uuid.uuid4()), full_name=user.full_name, email=user.email, password=hashed_password.decode('utf-8'), phone=user.phone)
     db.add(new_user)
     db.commit() 
   
@@ -36,8 +41,9 @@ async def register_user(user: CreateUser, db: Session = Depends(get_db)):
     return ResponseModel(status="success",message="Registered Successfully",data={"user_id":new_user.user_id})
   
   except Exception as err:
+    print(f'user registaion failed. Error: {err}')
     db.rollback()
-    return ResponseModel(status="failed",message=err,data={})
+    return HTTPException(status_code=500, detail="User registration failed")
 
 
 
